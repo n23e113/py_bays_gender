@@ -39,7 +39,7 @@ class GenderFile:
         self.__dataRow = 0
         self.__dataColumn = 0
         self.__data = np.zeros((0, 0), dtype=self.dtype)
-        self.__y = np.zeros(0)
+        self.__y = np.zeros(0, dtype=np.int)
         self.__trainIdx = 0
         self.__listRawData = []
         self.__tempDirPath = tempPath
