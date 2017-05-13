@@ -52,8 +52,8 @@ class GenderFile:
     def getY(self):
         return self.__y
 
-    def restore(self):
-        if os.path.exists(self.__tempDirPath):
+    def restore(self, loadCache):
+        if loadCache and (os.path.exists(self.__tempDirPath)):
             lstData = []
             for i in range(GenderFile.splitCount):
                 lstData.append(
@@ -124,6 +124,7 @@ class GenderFile:
         print("end buildAppData")
         lstData = np.vsplit(self.__data, GenderFile.splitCount)
 
+        __import__('shutil').rmtree(self.__tempDirPath)
         os.makedirs(self.__tempDirPath)
         idx = 0
         for pick_a in lstData:

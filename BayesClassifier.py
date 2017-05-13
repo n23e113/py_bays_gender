@@ -3,9 +3,9 @@ import numpy as np
 import F1Score
 
 
-def BayesClassifierFun(X, Y):
+def BayesClassifierFun(X, Y, trainCheckParam):
     allDataRow = X.shape[0]
-    trainRow = int(0.7 * allDataRow)
+    trainRow = int(trainCheckParam * allDataRow)
     trainX = X[:trainRow, :]
     trainY = Y[:trainRow]
     p_y_0, p_y_1, x_v_0, x_v_1 = computParam(trainX, trainY)
@@ -15,8 +15,8 @@ def BayesClassifierFun(X, Y):
 
 
 def classifier(p_y_0, p_y_1, x_v_0, x_v_1, check_x, check_y):
-    check_x_n = np.where(check_x == False, True, False)
-    check_x_0 = check_x_n * x_v_0
+    #    check_x_n = np.where(check_x == False, True, False)
+    check_x_0 = check_x * x_v_0
     log_check_x_0 = np.where(check_x_0 != 0, np.log(check_x_0), 0)
     log_p_y_0 = np.log(p_y_0)
 
