@@ -21,9 +21,9 @@ class DataRawItem(object):
 
     def getYData(self):
         if self.gender == "male":
-            return 0
+            return (0)
         else:
-            return 1
+            return (1)
 
 
 class GenderFile:
@@ -39,10 +39,11 @@ class GenderFile:
         self.__dataRow = 0
         self.__dataColumn = 0
         self.__data = np.zeros((0, 0), dtype=self.dtype)
-        self.__y = np.zeros(0, dtype=np.int)
+        self.__y = np.zeros((0, 0), dtype=np.int)
         self.__trainIdx = 0
         self.__listRawData = []
         self.__tempDirPath = tempPath
+        self.__cache = False
 
         pass
 
@@ -53,6 +54,7 @@ class GenderFile:
         return self.__y
 
     def restore(self, loadCache):
+        self.__cache = loadCache
         if loadCache and (os.path.exists(self.__tempDirPath)):
             lstData = []
             for i in range(GenderFile.splitCount):
@@ -69,7 +71,7 @@ class GenderFile:
             for i in range(GenderFile.splitCount):
                 lstData.append(
                     np.load(self.__tempDirPath + self.YFileName % (i)))
-            self.__y = np.hstack(lstData)
+            self.__y = np.vstack(lstData)
         else:
             self.readFile()
             self.buildAppData()
@@ -122,9 +124,13 @@ class GenderFile:
                       {'process': (idx / onepice)})
             idx += 1
         print("end buildAppData")
+
+        if self.__cache == False:
+            return
         lstData = np.vsplit(self.__data, GenderFile.splitCount)
 
-        __import__('shutil').rmtree(self.__tempDirPath)
+        if (os.path.exists(self.__tempDirPath)):
+            __import__('shutil').rmtree(self.__tempDirPath)
         os.makedirs(self.__tempDirPath)
         idx = 0
         for pick_a in lstData:
@@ -134,13 +140,15 @@ class GenderFile:
         # self.__data.tofile(self.__tempDirPath)
 
     def buildYData(self):
-        self.__y.resize(self.__dataRow)
+        self.__y.resize(self.__dataRow, 1)
         idx = 0
         for elem in self.__listRawData:
             self.__y[idx] = elem.getYData()
             idx += 1
 
-        lstData = np.hsplit(self.__y, GenderFile.splitCount)
+        if self.__cache == False:
+            return
+        lstData = np.vsplit(self.__y, GenderFile.splitCount)
         idx = 0
         for pick_a in lstData:
             np.save(self.__tempDirPath + self.YFileName % (idx), pick_a)

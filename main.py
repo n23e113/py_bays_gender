@@ -3,6 +3,7 @@ import io
 import sys
 import numpy as np
 import BayesClassifier
+import tf_bayes
 
 if __name__ == '__main__':
     print("start")
@@ -10,9 +11,9 @@ if __name__ == '__main__':
     print("start2")
     gf = GenderFile.GenderFile(
         "D:\coding\eclipse\projects\DistinguishGender/python_distGender/aiwar_train_data",
-        "D:\coding\eclipse\projects\DistinguishGender/python_distGender/one_hot_data", 80000)
-    gf.restore(False)
-    acc = BayesClassifier.BayesClassifierFun(gf.getX(), gf.getY(), 0.7)
+        "D:\coding\eclipse\projects\DistinguishGender/python_distGender/one_hot_data", 100000)
+    gf.restore(True)
+    acc = tf_bayes.BayesClassifierFun(gf.getX(), gf.getY(), 0.7)
     print(acc)
     pass
 
