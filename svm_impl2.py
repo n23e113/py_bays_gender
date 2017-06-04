@@ -13,32 +13,53 @@ def Linear_kernel(x, z):
 kernal = Linear_kernel
 
 
-def randJ(i, m):
-    j = rd.sample(range(m), 1)
-    while j == i:
-        j = rd.sample(range(m), 1)
-    return j[0]
-
-
-def select(i, A):
+def select(i, X, Y, A, b, E):
     pp = np.nonzero((A > 0))[0]
     if (pp.size > 0):
-        j = randJ(i, pp)
+        j = findMax(i, pp, X, Y, A, b, E)
     else:
-        j = randJ(i, range(A.shape()))
+        j = findMax(i, range(A.shape[0]), X, Y, A, b, E)
     return j
 
 
+def randJ(i, M):
+    j = rd.sample(range(M), 1)
+    while j == i:
+        j = rd.sample(range(M), 1)
+    return j[0]
+
+
+def findMax(i, ls, X, Y, A, b, E):
+    ansj = -1
+    maxx = -1
+    updateE(i, X, Y, A, b, E)
+    for j in ls:
+        if i == j:
+            continue
+        updateE(j, X, Y, A, b, E)
+        deltaE = np.abs(E[i] - E[j])
+        if deltaE > maxx:
+            maxx = deltaE
+            ansj = j
+    if ansj == -1:
+        return randJ(i)
+    return ansj
+
+
 def pred(X, Y, A, b, x_i):
-    m, n = X.shape()
+    m = X.shape[0]
     ret = 0
     for i in range(m):
         ret += A[i] * Y[i] * kernal(X[i], x_i)
     return ret + b
 
 
+def updateE(i, X, Y, A, b, E):
+    E[i] = pred(X, Y, A, b, X[i]) - Y[i]
+
+
 def svm_train(C, tol, max_passes, X, Y, threshold):
-    m, n = X.shape()
+    m = X.shape[0]
     A = np.zeros(m)
     b = 0
     E = np.zeros(m)
@@ -52,7 +73,7 @@ def svm_train(C, tol, max_passes, X, Y, threshold):
             e_i = pred(X, Y, A, b, x_i) - y_i
             E[i] = e_i
             if (y_i * e_i < tol and a_i < C) or (y_i * e_i > tol and a_i > C):
-                j = select(i, A)
+                j = select(i, X, Y, A, b, E)
                 a_j = A[j]
                 x_j = X[j]
                 y_j = Y[j]
@@ -71,9 +92,9 @@ def svm_train(C, tol, max_passes, X, Y, threshold):
                 if (L == H):
                     continue
 
-                K11 = kernal(X[:, i], X[:, i])
-                K22 = kernal(X[:, j], X[:, j])
-                K12 = kernal(X[:, i], X[:, j])
+                K11 = kernal(x_i, x_i)
+                K22 = kernal(x_j, x_j)
+                K12 = kernal(x_i, x_j)
                 eta = 2 * K12 - K11 - K22
                 if (eta >= 0):
                     continue
@@ -82,14 +103,15 @@ def svm_train(C, tol, max_passes, X, Y, threshold):
                     a_j = H
                 elif a_j < L:
                     a_j = L
-
+                A[j] = a_j
                 if (np.abs(a_j - a_j_old) < threshold):
                     continue
 
                 a_i = a_i + y_i * y_j * (a_j_old - a_j)
-                b1 = b - e_i - y_i(a_i - a_i_old) * K11 - \
+                A[i] = a_i
+                b1 = b - e_i - y_i * (a_i - a_i_old) * K11 - \
                     y_j * (a_j - a_j_old) * K12
-                b2 = b - e_i - y_i(a_i - a_i_old) * K12 - \
+                b2 = b - e_i - y_i * (a_i - a_i_old) * K12 - \
                     y_j * (a_j - a_j_old) * K22
 
                 if 0 < a_i and a_i < C:
@@ -112,12 +134,15 @@ def capW(A, X, Y):
 
 
 if __name__ == '__main__':
-    X = np.array([(6, 8), (2, 3), (40, 56), (98, 23), (40, 10), (23, 20)])
-    Y = np.array([(1), (1), (1), (-1), (-1), (-1)])
-    X_Check = np.array([(6, 10), (13, 10), (10, 20)])
-    Y_Check = np.array([(1), (-1), (1)])
+    X = np.array([(6, 8), (2, 3), (40, 56), (98, 23),
+                  (40, 10), (23, 20), (15, 16)])
+    Y = np.array([(1), (1), (1), (-1), (-1), (-1), (1)])
+    X_Check = np.array([(6, 10), (13, 10), (10, 20),
+                        (80, 48), (20, 30), (56, 59), (531, 200)])
+    Y_Check = np.array([(1), (-1), (1), (-1), (1), (1), (-1)])
     YP_Check = np.zeros_like(Y_Check)
     A, b = svm_train(0.5, 0.1, 50, X, Y, 0.000001)
     for i in range(X_Check.shape[0]):
         x_i = X_Check[i]
         YP_Check[i] = pred(X, Y, A, b, x_i)
+    pass
